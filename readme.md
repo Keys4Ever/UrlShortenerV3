@@ -1,50 +1,50 @@
 # URLShortenerV3
 
-Acortador de URLs con cuenta de usuario, panel de control, analytics de clics y soporte para enlaces anónimos con reclamo por secreto.
+URL shortener with user accounts, a control panel, click analytics, and support for anonymous links with secret-based claiming.
 
-## Qué hace la aplicación
+## What the app does
 
-- Crear enlaces cortos (usuarios autenticados o invitados).
-- Gestionar títulos, descripción y tags desde el dashboard.
-- Ver estadísticas (clics totales, últimas 24 h, dispositivos, países, referrers).
-- Ranking y caché auxiliar con Redis; persistencia en PostgreSQL.
+- Create short links (signed-in or guest users).
+- Manage titles, descriptions, and tags from the dashboard.
+- View statistics (total clicks, last 24 h, devices, countries, referrers).
+- Ranking and auxiliary cache with Redis; persistence in PostgreSQL.
 
-## Arquitectura del monorepo
+## Monorepo layout
 
-| Carpeta | Rol |
-|---------|-----|
-| `apps/frontend` | UI (React + Vite): login, acortador, dashboard, stats. |
-| `apps/backend` | API NestJS: auth, URLs, tags, analytics, redirect `/:shortCode`. |
+| Path | Role |
+|------|------|
+| `apps/frontend` | UI (React + Vite): login, shortener, dashboard, stats. |
+| `apps/backend` | NestJS API: auth, URLs, tags, analytics, `/:shortCode` redirect. |
 
-| Servicio | Rol |
-|----------|-----|
-| **PostgreSQL** | Usuarios, URLs, tags, stats por click, secretos anónimos. |
-| **Redis** | Contadores/ranking y operaciones rápidas en caliente. |
+| Service | Role |
+|---------|------|
+| **PostgreSQL** | Users, URLs, tags, per-click stats, anonymous secrets. |
+| **Redis** | Counters/ranking and fast hot-path operations. |
 
-## Flujo: usuario → frontend → backend → DB / Redis
+## Flow: user → frontend → backend → DB / Redis
 
-1. **Usuario** usa el navegador (login, crear link, filtrar dashboard, abrir stats).
-2. **Frontend** llama al API (`fetch` contra `VITE_API_BASE_URL`) con JSON y, si aplica, `Authorization: Bearer …`.
-3. **Backend** valida JWT, ejecuta lógica de negocio y:
-   - **escribe/lee en PostgreSQL** (URLs, usuarios, `url_stats`, etc.);
-   - **actualiza Redis** (clicks, ranking, limpieza de caché cuando toca).
-4. **Click en un short link**: el cliente pide `GET https://<host-backend>/<shortCode>`; el backend resuelve el código, registra el evento (async + DB), incrementa contadores y responde **redirect 301** a la URL destino.
+1. **User** uses the browser (login, create link, filter dashboard, open stats).
+2. **Frontend** calls the API (`fetch` to `VITE_API_BASE_URL`) with JSON and, when applicable, `Authorization: Bearer …`.
+3. **Backend** validates JWT, runs business logic and:
+   - **reads/writes PostgreSQL** (URLs, users, `url_stats`, etc.);
+   - **updates Redis** (clicks, ranking, cache invalidation when needed).
+4. **Short-link click**: the client requests `GET https://<backend-host>/<shortCode>`; the backend resolves the code, records the event (async + DB), bumps counters, and returns a **301 redirect** to the destination URL.
 
 ```text
-Usuario
+User
   │
   ▼
-Frontend (Vite / Nginx estático)
+Frontend (Vite / static Nginx)
   │  HTTPS/HTTP + JSON + JWT
   ▼
 Backend (NestJS)
-  ├──► PostgreSQL (datos duraderos)
-  └──► Redis (ranking / caché / contadores)
+  ├──► PostgreSQL (durable data)
+  └──► Redis (ranking / cache / counters)
 ```
 
-## Arranque con Docker (recomendado en local)
+## Running with Docker (recommended locally)
 
-Desde la **raíz del repo** (`URLShortenerV3`).
+From the **repository root** (`URLShortenerV3`).
 
 ### 1) Backend + PostgreSQL + Redis
 
@@ -52,47 +52,47 @@ Desde la **raíz del repo** (`URLShortenerV3`).
 docker compose -f .\docker-compose.backend.yml up -d --build
 ```
 
-Por defecto queda:
+Defaults:
 
 - API: `http://localhost:3000`
-- Postgres: `localhost:5432` (usuario/contraseña `postgres` / `postgres`, DB `url_shortener`)
+- Postgres: `localhost:5432` (user/password `postgres` / `postgres`, DB `url_shortener`)
 - Redis: `localhost:6379`
 
-Variables relevantes en `docker-compose.backend.yml` (puedes sobreescribirlas en el mismo archivo o con un `.env` al lado del compose):
+Relevant variables in `docker-compose.backend.yml` (override in that file or with a `.env` next to the compose file):
 
-| Variable | Uso |
-|----------|-----|
-| `PORT` | Puerto del API (3000 en el compose). |
-| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME` | Conexión a Postgres. |
-| `REDIS_HOST`, `REDIS_PORT` | Conexión a Redis. |
-| `JWT_SECRET` | Firma de tokens JWT. |
-| `SHORT_URL_BASE` | Base pública de los short links (ej. `http://localhost:3000`). |
-| `CORS_ORIGIN` | Orígenes permitidos del frontend (coma-separados). Debe coincidir con la URL desde la que abres la UI. |
-| `FRONTEND_BASE_URL` | Base del front para redirects (ej. 404); por defecto en código suele ser `http://localhost:8080`. |
+| Variable | Purpose |
+|----------|---------|
+| `PORT` | API port (3000 in compose). |
+| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME` | Postgres connection. |
+| `REDIS_HOST`, `REDIS_PORT` | Redis connection. |
+| `JWT_SECRET` | JWT signing secret. |
+| `SHORT_URL_BASE` | Public base for short links (e.g. `http://localhost:3000`). |
+| `CORS_ORIGIN` | Allowed frontend origins (comma-separated). Must match the URL you use to open the UI. |
+| `FRONTEND_BASE_URL` | Frontend base for redirects (e.g. 404); code default is often `http://localhost:8080`. |
 
-**Importante:** si sirves el front en Docker en el puerto **8080**, ajusta en el compose del backend algo como:
+**Important:** if you serve the frontend on Docker port **8080**, set something like this in the backend compose:
 
 ```yaml
 CORS_ORIGIN: http://localhost:8080
 ```
 
-(El ejemplo del repo a veces trae `http://localhost:5173`; eso es para otro flujo de dev.)
+(The repo example may still show `http://localhost:5173`; that targets a different dev workflow.)
 
-### 2) Frontend (Nginx + estáticos)
+### 2) Frontend (Nginx + static assets)
 
 ```powershell
 docker compose -f .\docker-compose.frontend.yml up -d --build
 ```
 
-- Puerto por defecto: **8080** → `http://localhost:8080`
-- El build inyecta la URL del API con build-arg:
+- Default port: **8080** → `http://localhost:8080`
+- The build injects the API URL via build-arg:
 
-| Variable | Uso |
-|----------|-----|
-| `VITE_API_BASE_URL` | URL base del backend que el bundle usará (default en compose: `http://localhost:3000`). |
-| `FRONTEND_PORT` | Puerto publicado del contenedor (default `8080`). |
+| Variable | Purpose |
+|----------|---------|
+| `VITE_API_BASE_URL` | Backend base URL baked into the bundle (compose default: `http://localhost:3000`). |
+| `FRONTEND_PORT` | Published host port for the container (default `8080`). |
 
-Ejemplo explícito:
+Explicit example:
 
 ```powershell
 $env:VITE_API_BASE_URL="http://localhost:3000"
@@ -100,19 +100,19 @@ $env:FRONTEND_PORT="8080"
 docker compose -f .\docker-compose.frontend.yml up -d --build
 ```
 
-El `Dockerfile` del frontend copia `changelog.md` en la raíz del contexto de build; el contexto debe ser la raíz del monorepo (ya está así en el compose).
+The frontend `Dockerfile` copies `changelog.md` at the root of the build context; the context must be the monorepo root (as in the compose file).
 
-## Desarrollo sin Docker (resumen)
+## Development without Docker (summary)
 
-- Instalar dependencias con **pnpm** en la raíz del monorepo.
-- Backend: variables de entorno alineadas con `docker-compose.backend.yml` pero con `DB_HOST=localhost` y `REDIS_HOST=localhost` si Postgres/Redis los tienes locales.
-- Frontend: `pnpm` en `apps/frontend`; en dev Vite usa puerto **8080** (`vite.config.ts`). Define `VITE_API_BASE_URL=http://localhost:3000` (o `.env` en frontend).
+- Install dependencies with **pnpm** at the monorepo root.
+- Backend: same env vars as `docker-compose.backend.yml`, but `DB_HOST=localhost` and `REDIS_HOST=localhost` if Postgres/Redis run locally.
+- Frontend: `pnpm` in `apps/frontend`; dev Vite listens on **8080** (`vite.config.ts`). Set `VITE_API_BASE_URL=http://localhost:3000` (or a frontend `.env`).
 
-## Notas de producción
+## Production notes
 
-- Coloca **HTTPS** y un reverse proxy que reenvíe la IP real del cliente (`X-Forwarded-For`, etc.) para geolocalización fiable en stats.
-- Alinea `SHORT_URL_BASE` con el dominio público de los short links y `CORS_ORIGIN` / `FRONTEND_BASE_URL` con el dominio real del front.
+- Use **HTTPS** and a reverse proxy that forwards the real client IP (`X-Forwarded-For`, etc.) for reliable geo in stats.
+- Align `SHORT_URL_BASE` with the public short-link domain and `CORS_ORIGIN` / `FRONTEND_BASE_URL` with the real frontend domain.
 
-## Documentación adicional
+## Additional documentation
 
-- Resumen orientado a producto: `changelog.md`.
+- Product-oriented summary: `changelog.md`.
