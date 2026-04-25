@@ -25,25 +25,42 @@ type UrlShortenerProps = {
 const HTTP_PROTOCOL_RE = /^https?:\/\//i;
 const URL_WITH_SCHEME_RE = /^[a-z][a-z\d+\-.]*:\/\//i;
 
+const CUSTOM_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function validateOptionalCustomShortCode(raw: string): { normalized?: string; error?: string } {
+  const t = raw.trim().toLowerCase();
+  if (!t) return {};
+  if (t.length < 3 || t.length > 32) {
+    return { error: "Custom path must be between 3 and 32 characters." };
+  }
+  if (!CUSTOM_SLUG_PATTERN.test(t)) {
+    return {
+      error:
+        "Use lowercase letters, numbers, and hyphens only—no leading/trailing hyphens or double hyphens.",
+    };
+  }
+  return { normalized: t };
+}
+
 function normalizeAndValidateOriginalUrl(rawUrl: string): { normalizedUrl?: string; error?: string } {
   const trimmed = rawUrl.trim();
   if (!trimmed) {
-    return { error: "Ingresa una URL." };
+    return { error: "Enter a URL." };
   }
 
   const normalized = URL_WITH_SCHEME_RE.test(trimmed) ? trimmed : `https://${trimmed}`;
   if (!HTTP_PROTOCOL_RE.test(normalized)) {
-    return { error: "La URL debe usar http o https." };
+    return { error: "URL must use http or https." };
   }
 
   try {
     const parsed = new URL(normalized);
     if (!parsed.hostname || !parsed.hostname.includes(".")) {
-      return { error: "La URL debe tener formato tipo dominio.tld." };
+      return { error: "URL must look like a domain with a TLD (e.g. example.com)." };
     }
     return { normalizedUrl: normalized };
   } catch {
-    return { error: "La URL no es valida." };
+    return { error: "That URL is not valid." };
   }
 }
 
@@ -54,6 +71,7 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [customShortCode, setCustomShortCode] = useState("");
   const [result, setResult] = useState<AnonymousUrlResult | null>(null);
   const [authResult, setAuthResult] = useState<{ shortUrl: string; shortCode: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,6 +86,7 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
       setTitle("");
       setDescription("");
       setTags([]);
+      setCustomShortCode("");
       return;
     }
     const token = useAuthStore.getState().accessToken;
@@ -79,8 +98,18 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
     e.preventDefault();
     const validation = normalizeAndValidateOriginalUrl(url);
     if (!validation.normalizedUrl) {
-      setError(validation.error ?? "La URL no es valida.");
+      setError(validation.error ?? "That URL is not valid.");
       return;
+    }
+
+    let customPayload: string | undefined;
+    if (user) {
+      const slugCheck = validateOptionalCustomShortCode(customShortCode);
+      if (slugCheck.error) {
+        setError(slugCheck.error);
+        return;
+      }
+      customPayload = slugCheck.normalized;
     }
 
     setLoading(true);
@@ -90,11 +119,12 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
       if (user) {
         const token = useAuthStore.getState().accessToken;
         if (!token) {
-          setError("Not authenticated.");
+          setError("Session expired or not signed in. Please log in again.");
           return;
         }
         const body = {
           originalUrl: normalizedUrl,
+          ...(customPayload ? { customShortCode: customPayload } : {}),
           ...(title.trim() ? { title: title.trim() } : {}),
           ...(description.trim() ? { description: description.trim() } : {}),
           ...(tags.length > 0 ? { tags } : {}),
@@ -107,6 +137,7 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
         setTitle("");
         setDescription("");
         setTags([]);
+        setCustomShortCode("");
         setMetaHintPulse(true);
         void useUrlsStore.getState().loadDashboard(token);
       } else {
@@ -116,7 +147,10 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
         setUrl("");
       }
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : "Could not shorten URL";
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Could not shorten that URL. Try again.";
       setError(message);
     } finally {
       setLoading(false);
@@ -160,7 +194,7 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
                   type="text"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  placeholder="example.com o https://example.com"
+                  placeholder="example.com or https://example.com"
                   aria-label="Destination URL to shorten"
                   required
                   className={cn(inputBase, "min-h-[44px] text-xs")}
@@ -177,6 +211,8 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
 
               {user && (
                 <AuthMetaDetails
+                  customShortCode={customShortCode}
+                  setCustomShortCode={setCustomShortCode}
                   title={title}
                   description={description}
                   tags={tags}
@@ -242,7 +278,7 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="example.com o https://example.com"
+            placeholder="example.com or https://example.com"
             aria-label="URL to shorten"
             required
             className="flex-1 min-h-[48px] bg-transparent px-4 py-3 font-mono text-base sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
@@ -258,6 +294,24 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
 
         {user && (
           <div className={cn(metaBorder, "p-3 sm:p-4 space-y-3 bg-surface/20")}>
+            <div className="space-y-1.5">
+              <label htmlFor="url-custom-slug" className={labelBase}>
+                Custom short path (optional)
+              </label>
+              <input
+                id="url-custom-slug"
+                type="text"
+                value={customShortCode}
+                onChange={(e) => setCustomShortCode(e.target.value)}
+                placeholder="e.g. summer-launch"
+                autoComplete="off"
+                spellCheck={false}
+                className={cn(inputBase, "min-h-[44px] text-sm")}
+              />
+              <p className="font-mono text-[10px] text-muted-foreground leading-relaxed">
+                3–32 chars: lowercase letters, numbers, hyphens. Leave empty for a random code.
+              </p>
+            </div>
             <div className="space-y-1.5">
               <label htmlFor="url-title" className={labelBase}>
                 Title (optional)

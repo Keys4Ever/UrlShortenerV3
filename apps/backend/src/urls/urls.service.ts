@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -20,6 +21,15 @@ import { RedisService } from '../redis/redis.service';
 import { v4 as uuid } from 'uuid';
 import * as geoip from 'geoip-lite';
 import * as UAParser from 'ua-parser-js';
+
+/** Single-segment paths that must not be used as short codes (routing / UX). */
+const RESERVED_SHORT_CODES = new Set([
+  'top-urls',
+  'api',
+  'auth',
+  'favicon',
+  'robots',
+]);
 
 @Injectable()
 export class UrlsService {
@@ -52,22 +62,41 @@ export class UrlsService {
     return shortCode;
   }
 
+  private assertCustomShortCodeAllowed(shortCode: string): void {
+    if (RESERVED_SHORT_CODES.has(shortCode)) {
+      throw new BadRequestException('This short path is reserved and cannot be used');
+    }
+  }
+
   async create(userId: number, createUrlDto: CreateUrlDto): Promise<Url> {
     let shortCode: string;
-    let attempts = 0;
-    const maxAttempts = 10;
 
-    do {
-      shortCode = this.generateShortCode();
-      const existing = await this.urlsRepository.findOne({
-        where: { shortCode },
+    if (createUrlDto.customShortCode) {
+      const requested = createUrlDto.customShortCode;
+      this.assertCustomShortCodeAllowed(requested);
+      const taken = await this.urlsRepository.findOne({
+        where: { shortCode: requested },
       });
-      if (!existing) break;
-      attempts++;
-    } while (attempts < maxAttempts);
+      if (taken) {
+        throw new ConflictException('This short path is already taken');
+      }
+      shortCode = requested;
+    } else {
+      let attempts = 0;
+      const maxAttempts = 10;
 
-    if (attempts === maxAttempts) {
-      throw new BadRequestException('Failed to generate unique short code');
+      do {
+        shortCode = this.generateShortCode();
+        const existing = await this.urlsRepository.findOne({
+          where: { shortCode },
+        });
+        if (!existing) break;
+        attempts++;
+      } while (attempts < maxAttempts);
+
+      if (attempts === maxAttempts) {
+        throw new BadRequestException('Failed to generate unique short code');
+      }
     }
 
     const url = this.urlsRepository.create({

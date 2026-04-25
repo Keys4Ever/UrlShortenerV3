@@ -3,6 +3,8 @@ import { TagPicker } from "@/components/TagPicker";
 import { cn } from "@/lib/utils";
 
 type AuthMetaDetailsProps = {
+  customShortCode: string;
+  setCustomShortCode: (value: string) => void;
   title: string;
   description: string;
   tags: string[];
@@ -16,6 +18,8 @@ type AuthMetaDetailsProps = {
 };
 
 export function AuthMetaDetails({
+  customShortCode,
+  setCustomShortCode,
   title,
   description,
   tags,
@@ -49,6 +53,24 @@ export function AuthMetaDetails({
         </span>
       </summary>
       <div className="space-y-3 border-t border-border/50 px-2 pb-3 pt-3">
+        <div className="space-y-1">
+          <label htmlFor="embed-custom-slug" className={labelBase}>
+            Custom path (optional)
+          </label>
+          <input
+            id="embed-custom-slug"
+            type="text"
+            value={customShortCode}
+            onChange={(e) => setCustomShortCode(e.target.value)}
+            placeholder="e.g. my-campaign-2025"
+            autoComplete="off"
+            spellCheck={false}
+            className={cn(inputBase, "min-h-[40px] text-xs")}
+          />
+          <p className="font-mono text-[10px] leading-snug text-muted-foreground">
+            3–32 chars: lowercase, numbers, hyphens. Empty = random code.
+          </p>
+        </div>
         <div className="space-y-1">
           <label htmlFor="embed-url-title" className={labelBase}>
             Title

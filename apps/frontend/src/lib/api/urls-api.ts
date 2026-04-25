@@ -17,7 +17,13 @@ export async function fetchUrlStats(accessToken: string, urlId: number): Promise
 
 export async function createAuthenticatedUrl(
   accessToken: string,
-  body: { originalUrl: string; title?: string; description?: string; tags?: string[] },
+  body: {
+    originalUrl: string;
+    customShortCode?: string;
+    title?: string;
+    description?: string;
+    tags?: string[];
+  },
 ): Promise<Pick<UrlItem, "id" | "originalUrl" | "shortCode" | "shortUrl" | "title" | "description" | "createdAt">> {
   return unwrapData(`/api/urls`, {
     method: "POST",
