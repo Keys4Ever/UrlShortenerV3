@@ -53,7 +53,7 @@ export default function Header({ onAuthClick, onNavigate, currentPage }: HeaderP
           <button
             type="button"
             onClick={() => onNavigate("home")}
-            aria-label="shrt.dev — home"
+            aria-label="ulnk.lat — home"
             className="flex min-h-[44px] min-w-0 shrink-0 items-center px-1 -mx-1 transition-opacity hover:opacity-90 focus-ring-terminal"
           >
             <BrandWordmark size="header" />

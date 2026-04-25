@@ -16,9 +16,9 @@ export function BrandWordmark({ className, size = "header" }: BrandWordmarkProps
         className,
       )}
     >
-      <span className="text-foreground">shrt</span>
+      <span className="text-foreground">ulnk</span>
       <span className="text-neon">.</span>
-      <span className="text-muted-foreground">dev</span>
+      <span className="text-muted-foreground">lat</span>
     </span>
   );
 }

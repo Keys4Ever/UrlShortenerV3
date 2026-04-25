@@ -51,8 +51,8 @@ export class AppController {
       success: true,
       data: {
         version: '1.0.0',
-        title: 'URL Shortener API',
-        description: 'RESTful API for URL shortening with analytics',
+        title: 'ulnk.lat API',
+        description: 'RESTful API for ulnk.lat URL shortening with analytics',
         endpoints: {
           auth: {
             'POST /api/auth/register': 'Register new user',

@@ -30,7 +30,7 @@ export default function Index() {
             </p>
             <p className="font-mono text-[11px] text-muted-foreground/90 mt-3 tabular-nums">
               <span className="text-neon-dim">{user ? user.nickname : "guest"}</span>
-              <span className="text-muted-foreground">@shrt.dev</span>
+              <span className="text-muted-foreground">@ulnk.lat</span>
               <span className="text-muted-foreground">:~$ </span>
               <span className="text-muted-foreground/70">shorten</span>
               <span
