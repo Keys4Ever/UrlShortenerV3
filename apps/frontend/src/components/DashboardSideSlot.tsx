@@ -10,7 +10,7 @@ export function DashboardSideSlot({ children, className }: DashboardSideSlotProp
   return (
     <aside
       className={cn(
-        "flex min-h-[min(40vh,320px)] w-full flex-shrink-0 flex-col self-stretch border-t border-border bg-surface md:min-h-0 md:w-[min(360px,38vw)] md:border-l md:border-t-0",
+        "flex min-h-0 w-full flex-1 flex-shrink-0 flex-col self-stretch border-t border-border bg-surface md:flex-none md:min-h-0 md:w-[min(360px,38vw)] md:border-l md:border-t-0",
         className,
       )}
       aria-label="Side panel"

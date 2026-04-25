@@ -116,7 +116,7 @@ export default function StatsPanel({
   );
 
   const body = (
-    <div className="p-3 space-y-3">
+    <div className="space-y-3 px-safe py-3 sm:px-3">
       <div className="space-y-1.5">
         <UrlHeader
           shortCode={url.shortCode}

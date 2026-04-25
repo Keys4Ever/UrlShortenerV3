@@ -10,7 +10,9 @@ export function BrandWordmark({ className, size = "header" }: BrandWordmarkProps
     <span
       className={cn(
         "font-mono inline-flex items-baseline tracking-tight",
-        size === "hero" ? "text-4xl font-bold leading-none sm:text-5xl" : "text-sm font-bold",
+        size === "hero"
+          ? "text-[clamp(1.65rem,7.5vw,2.75rem)] font-bold leading-none sm:text-5xl"
+          : "text-sm font-bold",
         className,
       )}
     >

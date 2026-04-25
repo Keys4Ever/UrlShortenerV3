@@ -21,13 +21,13 @@ export function DashboardFiltersBar({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Filter by code, URL, title, description or tag"
-          className="w-full md:flex-1 min-h-[40px] bg-input border border-border px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+          className="w-full min-h-[44px] bg-input border border-border px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary md:min-h-[40px] md:flex-1"
           aria-label="Filter links by text"
         />
         <select
           value={selectedTag}
           onChange={(e) => onTagChange(e.target.value)}
-          className="w-full md:w-56 min-h-[40px] bg-input border border-border px-3 py-2 font-mono text-xs text-foreground focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+          className="w-full min-h-[44px] bg-input border border-border px-3 py-2 font-mono text-xs text-foreground focus:outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary md:min-h-[40px] md:w-56"
           aria-label="Filter links by tag"
         >
           <option value="all">All tags</option>

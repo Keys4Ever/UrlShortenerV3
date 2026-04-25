@@ -18,7 +18,7 @@ export function DashboardMainPanel({
   hasActiveFilters = false,
 }: DashboardMainPanelProps) {
   return (
-    <div className="min-h-[200px]">
+    <div className="min-h-[200px] min-w-0">
       {listLoading && urls.length === 0 ? (
         <div className="p-6 font-mono text-xs text-muted-foreground">Loading links…</div>
       ) : urls.length === 0 ? (
@@ -35,7 +35,7 @@ export function DashboardMainPanel({
         </div>
       ) : (
         <>
-          <div className="space-y-2 border-border/50 p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] md:hidden">
+          <div className="space-y-2 border-border/50 px-safe py-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] md:hidden sm:px-4">
             <p className="mb-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Links — tap a row; stats open below</p>
             {urls.map((url) => {
               const selected = selectedUrl?.id === url.id;

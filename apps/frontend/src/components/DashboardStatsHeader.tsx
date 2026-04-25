@@ -12,7 +12,7 @@ export function DashboardStatsHeader({
   aggregateClicks24h,
 }: DashboardStatsHeaderProps) {
   return (
-    <div className="border-b border-border px-safe py-3 sm:pl-[max(1.5rem,env(safe-area-inset-left,0px))] sm:pr-[max(1.5rem,env(safe-area-inset-right,0px))] flex flex-wrap gap-x-8 gap-y-3">
+    <div className="flex flex-col gap-3 border-b border-border px-safe py-3 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-3 sm:pl-[max(1.5rem,env(safe-area-inset-left,0px))] sm:pr-[max(1.5rem,env(safe-area-inset-right,0px))]">
       <StatBlock label="Short links" value={listLoading ? "…" : total} />
       <StatBlock
         label="Clicks (all time)"
@@ -37,12 +37,12 @@ function StatBlock({
   accent?: boolean;
 }) {
   return (
-    <div className="flex items-baseline gap-2">
-      <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
+    <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-2">
+      <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider sm:text-xs">
         {label}
       </span>
       <span
-        className={`font-mono text-lg font-bold ${accent ? "text-neon" : "text-foreground"}`}
+        className={`font-mono text-base font-bold tabular-nums sm:text-lg ${accent ? "text-neon" : "text-foreground"}`}
       >
         {value}
       </span>

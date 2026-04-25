@@ -12,13 +12,13 @@ type UrlHeaderProps = {
 
 export function UrlHeader({ shortCode, copied, editing, onCopy, onToggleEdit }: UrlHeaderProps) {
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="shrink-0 font-mono text-xs text-neon">/{shortCode}</span>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="min-w-0 shrink-0 font-mono text-xs text-neon">/{shortCode}</span>
       <button
         type="button"
         onClick={onCopy}
         aria-label={copied ? "Copied to clipboard" : `Copy short URL /${shortCode}`}
-        className="inline-flex h-5 min-w-[4.25rem] shrink-0 items-center justify-center border border-border px-3 text-muted-foreground transition-interact hover:border-foreground hover:text-foreground focus-ring-terminal touch-manipulation"
+        className="inline-flex h-9 min-h-9 min-w-[4.25rem] shrink-0 items-center justify-center border border-border px-3 text-muted-foreground transition-interact hover:border-foreground hover:text-foreground focus-ring-terminal touch-manipulation"
       >
         {copied ? (
           <Check className="h-3.5 w-3.5 text-neon" strokeWidth={2} aria-hidden />
@@ -29,7 +29,7 @@ export function UrlHeader({ shortCode, copied, editing, onCopy, onToggleEdit }: 
       <button
         type="button"
         onClick={onToggleEdit}
-        className="inline-flex h-5 items-center gap-1 border border-border px-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-interact hover:border-foreground hover:text-foreground focus-ring-terminal touch-manipulation"
+        className="inline-flex h-9 min-h-9 items-center gap-1 border border-border px-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-interact hover:border-foreground hover:text-foreground focus-ring-terminal touch-manipulation"
       >
         <Pencil className="h-3 w-3" aria-hidden />
         {editing ? "Cancel" : "Edit"}
@@ -213,7 +213,9 @@ export function ReferrerBreakdown({ stats }: { stats: UrlStats }) {
       <div className="space-y-1.5">
         {stats.topReferrers.map((r) => (
           <div key={r.referrer} className="flex items-center gap-2">
-            <span className="font-mono text-[11px] text-muted-foreground w-28 shrink-0 truncate">{r.referrer}</span>
+            <span className="min-w-0 max-w-[45%] shrink truncate font-mono text-[11px] text-muted-foreground sm:max-w-none sm:w-28">
+              {r.referrer}
+            </span>
             <div className="flex-1 h-2 bg-surface-raised border border-border overflow-hidden">
               <div className="h-full bg-neon-dim" style={{ width: `${(r.count / maxReferrer) * 100}%` }} />
             </div>

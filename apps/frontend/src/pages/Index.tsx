@@ -20,12 +20,12 @@ export default function Index() {
       />
 
       {page === "home" ? (
-        <main className="flex-1 flex flex-col justify-center landscape:justify-start px-safe pb-[max(4rem,env(safe-area-inset-bottom,0px))] pt-10 sm:pb-20 sm:pl-[max(1.5rem,env(safe-area-inset-left,0px))] sm:pr-[max(1.5rem,env(safe-area-inset-right,0px))] md:justify-center md:landscape:justify-center md:pt-0 md:pl-[clamp(1.5rem,11vw,12%)] md:pr-8">
-          <div className="mb-8">
-            <h1 className="mb-2">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col justify-center landscape:justify-start px-safe pb-[max(4rem,env(safe-area-inset-bottom,0px))] pt-6 sm:pb-20 sm:pt-10 sm:pl-[max(1.5rem,env(safe-area-inset-left,0px))] sm:pr-[max(1.5rem,env(safe-area-inset-right,0px))] md:justify-center md:landscape:justify-center md:pt-0 md:pl-[clamp(1.5rem,11vw,12%)] md:pr-8">
+          <div className="mb-6 min-w-0 sm:mb-8">
+            <h1 className="mb-2 min-w-0">
               <BrandWordmark size="hero" />
             </h1>
-            <p className="font-mono text-base leading-relaxed text-muted-foreground sm:text-sm sm:leading-normal">
+            <p className="font-mono text-sm leading-relaxed text-muted-foreground sm:text-base sm:leading-normal md:text-sm">
               {user ? "Shorten a link (saved to your account)" : "Paste a URL, get a short link."}
             </p>
             <p className="font-mono text-[11px] text-muted-foreground/90 mt-3 tabular-nums">
@@ -43,7 +43,7 @@ export default function Index() {
           <UrlShortener />
 
           {!user && (
-            <div className="mt-12 font-mono text-sm text-muted-foreground max-w-md space-y-2 border border-border border-dashed border-muted-foreground/25 p-4 bg-surface/40 sm:text-xs">
+            <div className="mt-8 max-w-md space-y-2 border border-dashed border-border border-muted-foreground/25 bg-surface/40 p-4 font-mono text-xs text-muted-foreground sm:mt-12">
               <p>
                 <span className="text-neon-dim"># </span>
                 Without an account, new links are deleted after 30 days.

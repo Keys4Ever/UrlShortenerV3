@@ -264,7 +264,7 @@ export default function UrlShortener({ variant = "page" }: UrlShortenerProps) {
   }
 
   return (
-    <div className={cn("w-full", "max-w-2xl")}>
+    <div className={cn("w-full min-w-0 max-w-2xl")}>
       <form onSubmit={handleShorten} className="touch-manipulation">
         <div className="flex flex-col sm:flex-row sm:items-stretch border border-border">
           <div

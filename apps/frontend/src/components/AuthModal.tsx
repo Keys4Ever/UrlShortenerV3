@@ -86,14 +86,14 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
   return (
     <div
       role="presentation"
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center bg-background/80 backdrop-blur-sm p-0 sm:p-4 touch-manipulation"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 p-3 backdrop-blur-sm touch-manipulation sm:items-center sm:p-4"
       onMouseDown={handleBackdropMouseDown}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
-        className="border border-border bg-card w-full max-w-md max-h-[min(100dvh,720px)] overflow-y-auto relative sm:max-h-[90vh] shadow-[0_0_40px_hsl(110_100%_55%/0.08)] pb-[max(0px,env(safe-area-inset-bottom,0px))]"
+        className="relative max-h-[min(100dvh,720px)] w-full max-w-md overflow-y-auto border border-border bg-card shadow-[0_0_40px_hsl(110_100%_55%/0.08)] pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:max-h-[90vh]"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="font-mono text-[11px] text-muted-foreground px-4 pt-1.5 pb-[3px] border-b border-border bg-surface flex items-center justify-between gap-2">

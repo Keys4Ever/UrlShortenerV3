@@ -9,6 +9,7 @@ import { DashboardSidePanel } from "./DashboardSidePanel";
 import { useDashboardFilters } from "@/hooks/use-dashboard-filters";
 import { DashboardStatsHeader } from "./DashboardStatsHeader";
 import { DashboardFiltersBar } from "./DashboardFiltersBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -22,7 +23,13 @@ export default function Dashboard() {
   const loadDashboard = useUrlsStore((s) => s.loadDashboard);
 
   const [selectedUrl, setSelectedUrl] = useState<UrlItem | null>(null);
-  const [sideOpen, setSideOpen] = useState(true);
+  const [sideOpen, setSideOpen] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 768 : true,
+  );
+  const isMobile = useIsMobile();
+
+  const mobileDetailOpen = isMobile && selectedUrl !== null;
+  const effectiveSideOpen = sideOpen || mobileDetailOpen;
 
   useEffect(() => {
     if (user && accessToken) {
@@ -98,8 +105,9 @@ export default function Dashboard() {
       />
 
       <DashboardShell
-        sideOpen={sideOpen}
+        sideOpen={effectiveSideOpen}
         onSideOpenChange={setSideOpen}
+        hideMain={mobileDetailOpen}
         main={
           <DashboardMainPanel
             urls={filteredUrls}
@@ -114,7 +122,10 @@ export default function Dashboard() {
             selectedUrl={selectedUrl}
             panelStats={panelStats}
             onClearSelection={() => setSelectedUrl(null)}
-            onCollapseSide={() => setSideOpen(false)}
+            onCollapseSide={() => {
+              setSideOpen(false);
+              if (isMobile) setSelectedUrl(null);
+            }}
             onUrlSaved={() => {
               if (accessToken) void loadDashboard(accessToken);
             }}
