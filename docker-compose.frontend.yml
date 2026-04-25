@@ -1,0 +1,11 @@
+# Solo el frontend (nginx + estáticos). Backend y DB van aparte.
+# Ajusta CORS en el backend al origen real del front (p. ej. http://localhost:8080).
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000}
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
