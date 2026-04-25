@@ -16,6 +16,11 @@ import { UrlStat } from './urls/entities/url-stat.entity';
 import { Tag } from './tags/entities/tag.entity';
 import { AnonymousSecret } from './anonymous/entities/anonymous-secret.entity';
 
+function parseBool(value: string | undefined, fallback: boolean): boolean {
+  if (!value) return fallback;
+  return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -31,8 +36,14 @@ import { AnonymousSecret } from './anonymous/entities/anonymous-secret.entity';
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_NAME || 'url_shortener',
       entities: [User, Url, UrlStat, Tag, AnonymousSecret],
-      synchronize: process.env.NODE_ENV !== 'production',
-      logging: process.env.NODE_ENV !== 'production',
+      synchronize: parseBool(
+        process.env.TYPEORM_SYNCHRONIZE,
+        process.env.NODE_ENV !== 'production',
+      ),
+      logging: parseBool(
+        process.env.TYPEORM_LOGGING,
+        process.env.NODE_ENV !== 'production',
+      ),
     }),
     RedisModule,
     AuthModule,

@@ -112,6 +112,11 @@ The frontend `Dockerfile` copies `changelog.md` at the root of the build context
 
 - Use **HTTPS** and a reverse proxy that forwards the real client IP (`X-Forwarded-For`, etc.) for reliable geo in stats.
 - Align `SHORT_URL_BASE` with the public short-link domain and `CORS_ORIGIN` / `FRONTEND_BASE_URL` with the real frontend domain.
+- A production-ready template is included in `deploy/`:
+  - `deploy/docker-compose.prod.yml`
+  - `deploy/.env.prod.example`
+  - `deploy/nginx.prod.conf`
+  - `deploy/PRODUCTION.md`
 
 ## Additional documentation
 
