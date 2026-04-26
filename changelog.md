@@ -1,3 +1,11 @@
+
+## 2026-04-26
+
+### Improvements
+- Custom short slug support for authenticated users
+- Custom slug validation in backend and frontend (format, length, reserved paths, uniqueness)
+- Dashboard changelog markdown parser now supports `###` headings
+
 ## 2026-04-25
 
 ### Initial release

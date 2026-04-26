@@ -5,6 +5,7 @@ import changelogRaw from "../../../../changelog.md?raw";
 type ParsedLine =
   | { kind: "h1"; text: string }
   | { kind: "h2"; text: string }
+  | { kind: "h3"; text: string }
   | { kind: "bullet"; text: string }
   | { kind: "text"; text: string };
 
@@ -14,6 +15,7 @@ function parseMarkdownLines(markdown: string): ParsedLine[] {
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line): ParsedLine => {
+      if (line.startsWith("### ")) return { kind: "h3", text: line.slice(4).trim() };
       if (line.startsWith("## ")) return { kind: "h2", text: line.slice(3).trim() };
       if (line.startsWith("# ")) return { kind: "h1", text: line.slice(2).trim() };
       if (line.startsWith("- ")) return { kind: "bullet", text: line.slice(2).trim() };
@@ -66,6 +68,14 @@ export function DashboardChangelog() {
                 <h4 key={`h2-${index}`} className="pt-1 text-[11px] uppercase tracking-wider text-neon-dim">
                   {item.text}
                 </h4>
+              );
+            }
+
+            if (item.kind === "h3") {
+              return (
+                <h5 key={`h3-${index}`} className="pt-1 text-[11px] text-foreground/90">
+                  {item.text}
+                </h5>
               );
             }
 

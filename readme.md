@@ -118,6 +118,22 @@ The frontend `Dockerfile` copies `changelog.md` at the root of the build context
   - `deploy/nginx.prod.conf`
   - `deploy/PRODUCTION.md`
 
+## GitHub Actions (deploy)
+
+Workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml):
+
+- **PR / push to `main`:** `pnpm install --frozen-lockfile` and `pnpm run build` for the whole workspace.
+- **Push to `main` or manual “Run workflow”:** after a green build, connects by **SSH** to your server, runs `git pull` on the clone, then `docker compose -f deploy/docker-compose.prod.yml --env-file .env.prod up -d --build`.
+
+Configure in the repo (**Settings → Secrets and variables → Actions**):
+
+| Type | Name | Purpose |
+|------|------|---------|
+| Secret | `DEPLOY_HOST` | Server host or IP |
+| Secret | `DEPLOY_USER` | SSH user |
+| Secret | `DEPLOY_SSH_KEY` | Private SSH key (PEM) |
+| Variable | `DEPLOY_PATH` | Absolute path to the git clone on the server (must contain `deploy/` and a `.env.prod` next to it, see `deploy/PRODUCTION.md`) |
+
 ## Additional documentation
 
 - Product-oriented summary: `changelog.md`.
