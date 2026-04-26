@@ -70,4 +70,5 @@ jobs:
             git fetch origin main
             git checkout main
             git pull --ff-only origin main
+            sudo -n docker compose -f deploy/docker-compose.prod.yml --env-file .env.prod down --remove-orphans
             sudo -n docker compose -f deploy/docker-compose.prod.yml --env-file .env.prod up -d --build
