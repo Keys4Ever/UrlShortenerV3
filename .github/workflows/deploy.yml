@@ -1,0 +1,73 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (pnpm)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace
+        run: pnpm run build
+
+  deploy:
+    name: Deploy (SSH + Docker Compose)
+    needs: build
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate deploy configuration
+        env:
+          DEPLOY_PATH_VAR: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -e
+          if [ -z "${{ secrets.DEPLOY_HOST }}" ] || [ -z "${{ secrets.DEPLOY_USER }}" ] || [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
+            echo "::error::Configure secrets DEPLOY_HOST, DEPLOY_USER, and DEPLOY_SSH_KEY to enable deploy."
+            exit 1
+          fi
+          if [ -z "$DEPLOY_PATH_VAR" ]; then
+            echo "::error::Set repository variable DEPLOY_PATH (absolute path to the clone on the server)."
+            exit 1
+          fi
+
+      - name: Git pull & Docker Compose on server
+        uses: appleboy/ssh-action@v1.2.1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 30m
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ vars.DEPLOY_PATH }}"
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+            docker compose -f deploy/docker-compose.prod.yml --env-file .env.prod up -d --build
