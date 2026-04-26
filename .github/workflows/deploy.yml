@@ -63,11 +63,11 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           command_timeout: 30m
-          script_stop: true
           script: |
             set -euo pipefail
             cd "${{ vars.DEPLOY_PATH }}"
+            test -f .env.prod
             git fetch origin main
             git checkout main
             git pull --ff-only origin main
-            docker compose -f deploy/docker-compose.prod.yml --env-file .env.prod up -d --build
+            sudo -n docker compose -f deploy/docker-compose.prod.yml --env-file .env.prod up -d --build
