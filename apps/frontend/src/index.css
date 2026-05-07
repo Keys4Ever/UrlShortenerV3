@@ -123,4 +123,26 @@
     padding-left: max(1rem, env(safe-area-inset-left, 0px));
     padding-right: max(1rem, env(safe-area-inset-right, 0px));
   }
+
+  /* Same float as portfolio Header.astro hero image (fragmentFloat, 5s) */
+  @keyframes hero-fragment-float {
+    0%,
+    100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    50% {
+      transform: translate(5px, -5px) rotate(0.5deg);
+    }
+  }
+
+  .hero-fragment-float {
+    transform-origin: center;
+    animation: hero-fragment-float 5s infinite ease-in-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fragment-float {
+      animation: none;
+    }
+  }
 }
