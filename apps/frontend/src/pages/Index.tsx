@@ -5,7 +5,7 @@ import AuthModal from "@/components/AuthModal";
 import UrlShortener from "@/components/UrlShortener";
 import Dashboard from "@/components/Dashboard";
 import { BrandWordmark } from "@/components/BrandWordmark";
-import meguminHero from "@/public/megumin2.png";
+import meguminHero from "@/public/megumin1.png";
 
 export default function Index() {
   const { user } = useAuth();
