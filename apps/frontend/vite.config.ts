@@ -11,6 +11,17 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy:
+      mode === "development"
+        ? {
+            "/api": {
+              target: "http://127.0.0.1:3000",
+              changeOrigin: true,
+              rewrite: (path) =>
+                path.startsWith("/api/auth") ? path.replace(/^\/api\/auth/, "/auth") : path,
+            },
+          }
+        : undefined,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
