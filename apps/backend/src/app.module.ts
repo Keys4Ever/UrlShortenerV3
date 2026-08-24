@@ -1,4 +1,7 @@
+import 'dotenv/config';
+
 import { Module } from '@nestjs/common';
+import { LoggyLogsModule } from '@loggy-logs/node/nest';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -21,11 +24,35 @@ function parseBool(value: string | undefined, fallback: boolean): boolean {
   return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
 }
 
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  const parsed = Number.parseInt(value ?? '', 10);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    LoggyLogsModule.forRoot({
+      serviceName: 'url-shortener',
+      serviceVersion: process.env.APP_VERSION || 'dev',
+      environment: process.env.NODE_ENV || 'development',
+      instanceId: process.env.HOSTNAME,
+      destination: {
+        type: 'file',
+        path: process.env.LOG_FILE || './logs/app.jsonl',
+        maxBytes: parsePositiveInt(
+          process.env.LOG_MAX_BYTES,
+          100 * 1024 * 1024,
+        ),
+        maxFiles: parsePositiveInt(process.env.LOG_MAX_FILES, 5),
+      },
+      http: {
+        enabled: true,
+        requestIdHeader: 'x-request-id',
+      },
     }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({

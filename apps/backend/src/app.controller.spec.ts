@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { RankingsService } from './redis/rankings.service';
+import { UrlsService } from './urls/urls.service';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -15,6 +16,12 @@ describe('AppController', () => {
           provide: RankingsService,
           useValue: {
             getTopUrls: jest.fn().mockResolvedValue([]),
+          },
+        },
+        {
+          provide: UrlsService,
+          useValue: {
+            resolveShortCode: jest.fn(),
           },
         },
       ],

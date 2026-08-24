@@ -1,0 +1,13 @@
+/var/log/nginx/access.loggy.jsonl {
+    daily
+    rotate 8
+    missingok
+    notifempty
+    nocompress
+    sharedscripts
+    postrotate
+        if [ -s /run/nginx.pid ]; then
+            kill -USR1 "$(cat /run/nginx.pid)"
+        fi
+    endscript
+}

@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${URL_POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -14,7 +14,7 @@ services:
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:${URL_REDIS_PORT:-6380}:6379"
     volumes:
       - redisdata:/data
 
@@ -25,6 +25,10 @@ services:
     environment:
       PORT: 3000
       NODE_ENV: development
+      APP_VERSION: dev
+      LOG_FILE: /var/log/url-shortener/app.jsonl
+      LOG_MAX_BYTES: 104857600
+      LOG_MAX_FILES: 5
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: postgres
@@ -41,6 +45,8 @@ services:
       - redis
     ports:
       - "3000:3000"
+    volumes:
+      - ./.runtime/url-shortener-logs:/var/log/url-shortener
 
 volumes:
   pgdata:

@@ -3,7 +3,11 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Inject,
+  Logger,
 } from '@nestjs/common';
+import type { LoggyLogger } from '@loggy-logs/node';
+import { LOGGY_LOGGER } from '@loggy-logs/node/nest';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Repository,
@@ -33,6 +37,8 @@ const RESERVED_SHORT_CODES = new Set([
 
 @Injectable()
 export class UrlsService {
+  private readonly logger = new Logger(UrlsService.name);
+
   constructor(
     @InjectRepository(Url)
     private urlsRepository: Repository<Url>,
@@ -41,6 +47,8 @@ export class UrlsService {
     @InjectRepository(Tag)
     private tagsRepository: Repository<Tag>,
     private redisService: RedisService,
+    @Inject(LOGGY_LOGGER)
+    private readonly loggyLogger: LoggyLogger,
   ) {}
 
   private generateShortCode(): string {
@@ -64,7 +72,9 @@ export class UrlsService {
 
   private assertCustomShortCodeAllowed(shortCode: string): void {
     if (RESERVED_SHORT_CODES.has(shortCode)) {
-      throw new BadRequestException('This short path is reserved and cannot be used');
+      throw new BadRequestException(
+        'This short path is reserved and cannot be used',
+      );
     }
   }
 
@@ -151,8 +161,8 @@ export class UrlsService {
       throw new NotFoundException(`URL with short code ${shortCode} not found`);
     }
 
-    this.recordClickAsync(url.id, shortCode, userAgent, ip, referrer).catch((err) =>
-      console.error('Error recording click:', err),
+    this.recordClickAsync(url.id, shortCode, userAgent, ip, referrer).catch(
+      (error) => this.logger.error('Error recording click', error),
     );
 
     url.clickCount += 1;
@@ -162,6 +172,14 @@ export class UrlsService {
     );
     await this.redisService.incrementUrlClicks(shortCode);
     await this.redisService.clearUrlStatsCache(shortCode);
+
+    this.loggyLogger.info('Short URL redirected', {
+      eventName: 'url.redirected',
+      attributes: {
+        short_code: shortCode,
+        'http.response.status_code': 301,
+      },
+    });
 
     return url;
   }
@@ -212,8 +230,7 @@ export class UrlsService {
           utmParams.campaign = url.searchParams.get('utm_campaign');
           utmParams.content = url.searchParams.get('utm_content');
           utmParams.term = url.searchParams.get('utm_term');
-        } catch {
-        }
+        } catch {}
       }
 
       const stat = this.urlStatsRepository.create({
@@ -228,7 +245,7 @@ export class UrlsService {
 
       await this.urlStatsRepository.save(stat);
     } catch (error) {
-      console.error('Error recording click stats:', error);
+      this.logger.error('Error recording click stats', error);
     } finally {
       await this.redisService.clearUrlStatsCache(shortCode);
     }
@@ -244,7 +261,9 @@ export class UrlsService {
     }
 
     if (userId != null && url.user?.id !== userId) {
-      throw new NotFoundException(`URL with ID ${urlId} not found or access denied`);
+      throw new NotFoundException(
+        `URL with ID ${urlId} not found or access denied`,
+      );
     }
 
     const now = new Date();
