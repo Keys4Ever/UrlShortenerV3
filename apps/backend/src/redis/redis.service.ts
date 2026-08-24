@@ -1,20 +1,24 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { createClient, RedisClientType } from 'redis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(RedisService.name);
   private client: RedisClientType;
   private isConnected = false;
 
   async onModuleInit() {
-    console.log('Processing env vars:', process.env);
-    
     const host = process.env.REDIS_HOST || 'localhost';
     const port = parseInt(process.env.REDIS_PORT || '6379');
     const password = process.env.REDIS_PASSWORD || undefined;
-    
-    console.log(`Attempting Redis connection to ${host}:${port}`);
-    
+
+    this.logger.log('Attempting Redis connection', { host, port });
+
     this.client = createClient({
       socket: {
         host: host,
@@ -23,17 +27,19 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       password: password,
     });
 
-    this.client.on('error', (err) => console.error('Redis Client Error:', err));
+    this.client.on('error', (error) =>
+      this.logger.error('Redis client error', error),
+    );
     this.client.on('connect', () => {
       this.isConnected = true;
-      console.log('✅ Redis connected successfully');
+      this.logger.log('Redis connected successfully');
     });
 
     try {
       await this.client.connect();
-      console.log('✅ Redis connection established');
+      this.logger.log('Redis connection established');
     } catch (error) {
-      console.error('❌ Failed to connect to Redis:', error);
+      this.logger.error('Failed to connect to Redis', error);
     }
   }
 
@@ -57,7 +63,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         await this.client.zRemRangeByRank(rankingKey, 0, count - 101);
       }
     } catch (error) {
-      console.error('Error incrementing URL clicks in Redis:', error);
+      this.logger.error('Error incrementing URL clicks in Redis', error);
     }
   }
 
@@ -69,7 +75,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       });
       return results;
     } catch (error) {
-      console.error('Error getting top URLs from Redis:', error);
+      this.logger.error('Error getting top URLs from Redis', error);
       return [];
     }
   }
@@ -80,7 +86,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       const count = await this.client.get(key);
       return count ? parseInt(count) : 0;
     } catch (error) {
-      console.error('Error getting URL clicks from cache:', error);
+      this.logger.error('Error getting URL clicks from cache', error);
       return 0;
     }
   }
@@ -94,7 +100,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       const key = `url:stats:${shortCode}`;
       await this.client.setEx(key, ttl, JSON.stringify(stats));
     } catch (error) {
-      console.error('Error caching URL stats:', error);
+      this.logger.error('Error caching URL stats', error);
     }
   }
 
@@ -104,7 +110,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       const cached = await this.client.get(key);
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error('Error getting cached stats:', error);
+      this.logger.error('Error getting cached stats', error);
       return null;
     }
   }
@@ -113,7 +119,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.client.del(`url:stats:${shortCode}`);
     } catch (error) {
-      console.error('Error clearing URL stats cache:', error);
+      this.logger.error('Error clearing URL stats cache', error);
     }
   }
 
@@ -124,7 +130,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         await this.client.del(keys);
       }
     } catch (error) {
-      console.error('Error clearing URL cache:', error);
+      this.logger.error('Error clearing URL cache', error);
     }
   }
 

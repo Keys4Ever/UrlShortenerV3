@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { LoggyLogger } from '@loggy-logs/node/nest';
 import { AppModule } from './app.module';
 
 const DEFAULT_DEV_ORIGINS = [
@@ -15,7 +16,9 @@ const DEFAULT_DEV_ORIGINS = [
 
 function corsOrigins(): string[] {
   const extra = process.env.CORS_ORIGIN?.trim()
-    ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
+    ? process.env.CORS_ORIGIN.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
     : [];
   if (process.env.NODE_ENV === 'production') {
     return extra.length > 0 ? extra : DEFAULT_DEV_ORIGINS;
@@ -24,7 +27,10 @@ function corsOrigins(): string[] {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = app.get(LoggyLogger);
+  app.useLogger(logger);
+  app.enableShutdownHooks();
 
   const origins = corsOrigins();
   const isProd = process.env.NODE_ENV === 'production';
@@ -38,6 +44,7 @@ async function bootstrap() {
       'Authorization',
       'Accept',
       'X-Requested-With',
+      'X-Request-ID',
       'Origin',
     ],
     optionsSuccessStatus: 204,
@@ -56,6 +63,6 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  console.log(`ulnk.lat API running on http://localhost:${port}`);
+  logger.log('ulnk.lat API running', { port }, 'Bootstrap');
 }
-bootstrap();
+void bootstrap();
